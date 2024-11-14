@@ -1,31 +1,48 @@
 # Show a profile Instagram feed in TYPO3
 
-# Based On https://github.com/in2code-de/instagram
+### Based On https://github.com/in2code-de/instagram
+
+Thanks a ton to the original author Alex Kellner!
 
 ## Introduction
 
-You need to setup a scraper at https://apify.com and use the following endpoint:
+As Meta will shutdown the Basic Display API, alternative ways to display instagram posts on your website are needed.
 
-apify/instagram-post-scraper -> https://api.apify.com/v2/acts/apify~instagram-scraper/runs/last/dataset/items?token=***
-
-This URL shows the result of the last run. Make sure you run the scheduler part of the extension often enough you do not miss any posts.
-
-You can query multiple instagram account with one scraper, the extension stores all posts. 
+The extension allows you to display the latest posts and reels from your instagram profile by using https://apify.com 
+as an API provider.
 
 ## Installation
 
-`composer require saschaschieferdecker/instagram`
+Clone the repo into your local packages directory and set up your root composer.json as follows:
+
+```json
+...
+  "repositories": [
+    {
+      "type": "path",
+      "url": "packages/*",
+      "options": {
+        "symlink": true
+      }
+    },
+...
+```
+Now you are able to install the extension from your local directory by using the "@dev" pattern:
+
+`composer require saschaschieferdecker/instagram:@dev
 
 
 ## Configuration
 
 ### The instagram part
 
-Sign up to apify and create two scrapers and set them up for the profiles to scrape:
+Sign up to apify.com and create a scrapers and set it up for the profiles to scrape:
 
 apify/instagram-scraper
 
-Make sure you don't select any filter (posts/reels) while setting up the scraper.
+Make sure you don't select any filter (posts/reels) while setting up the scraper. Schedule the scraper to run as often as you like.
+
+### The TYPO3 part
 
 ### CLI commands
 
@@ -226,3 +243,4 @@ static template "Instagram" on your page.
   "isSponsored": false
 }
 ```
+License: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
