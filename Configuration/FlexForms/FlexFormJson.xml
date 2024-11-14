@@ -39,7 +39,15 @@
 							<config>
 								<type>input</type>
 								<default>10</default>
-								<eval>int,required</eval>
+								<eval>trim,int,required</eval>
+								<range>
+									<lower>1</lower>
+									<upper>100</upper>
+								</range>
+								<slider>
+									<step>1</step>
+									<width>400</width>
+								</slider>
 							</config>
 						</TCEforms>
 					</settings.limit>
