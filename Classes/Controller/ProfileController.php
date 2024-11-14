@@ -6,6 +6,7 @@ namespace SaschaSchieferdecker\Instagram\Controller;
 use Psr\Http\Message\ResponseInterface;
 use SaschaSchieferdecker\Instagram\Domain\Repository\FeedRepository;
 use SaschaSchieferdecker\Instagram\Domain\Repository\TokenRepository;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 
 /**
@@ -13,6 +14,11 @@ use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
  */
 class ProfileController extends ActionController
 {
+
+    /**
+     * @var string
+     */
+    protected $imageFolder = 'typo3temp/assets/tx_instagram/';
     /**
      * @var FeedRepository
      */
@@ -38,6 +44,16 @@ class ProfileController extends ActionController
     public function jsonAction()
     {
         $feedposts = $this->feedRepository->findDataByUsername((string)$this->settings['username'], (int) $this->settings['limit']);
+        foreach ($feedposts as &$item) {
+            $pathAndName = GeneralUtility::getFileAbsFileName($this->imageFolder) . $item['id'] . '.jpg';
+            if (file_exists($pathAndName)) {
+                $item['displayUrl'] = rtrim($this->settings['domainprefix'], '/') . '/' . $this->imageFolder . $item['id'] . '.jpg';
+            }
+            $pathAndName = GeneralUtility::getFileAbsFileName($this->imageFolder) . $item['id'] . '.mp4';
+            if (file_exists($pathAndName)) {
+                $item['videoUrl'] = rtrim($this->settings['domainprefix'], '/') . '/' . $this->imageFolder . $item['id'] . '.mp4';
+            }
+        }
         header('Content-Type: application/json');
         echo json_encode($feedposts);
         die();

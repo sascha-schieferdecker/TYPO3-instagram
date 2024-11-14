@@ -21,5 +21,7 @@ call_user_func(
         $layout = 'cms/layout/class.tx_cms_layout.php';
         $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][$layout]['tt_content_drawItem']['instagram_pi1'] =
         \SaschaSchieferdecker\Instagram\Hooks\PageLayoutView\Pi1PreviewRenderer::class;
+        $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][$layout]['tt_content_drawItem']['instagram_json'] =
+        \SaschaSchieferdecker\Instagram\Hooks\PageLayoutView\JsonPreviewRenderer::class;
     }
 );

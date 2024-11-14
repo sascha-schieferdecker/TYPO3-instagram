@@ -1,0 +1,40 @@
+{namespace instagram=SaschaSchieferdecker\Instagram\ViewHelpers}
+
+<instagram:backend.catch>
+	<instagram:backend.editLink identifier="{data.uid}">
+		<div class="backend-preview-instagram-plugin1">
+			<p>
+				<strong>Instagram Feed <f:if condition="{flexForm.settings.username}">(User {flexForm.settings.username})</f:if></strong>
+			</p>
+
+			<div class="row row-no-gutters">
+				<f:alias map="{images:'{instagram:backend.getFeed(flexForm:flexForm)}'}">
+					<f:if condition="{images -> f:count()} > 0">
+						<f:then>
+							<f:for each="{images}" as="image" iteration="iteration">
+								<f:if condition="{iteration.cycle} < 7">
+									<div class="col-md-2">
+										<instagram:isLocalImageExisting id="{image.id}">
+											<f:then>
+												<f:image src="/typo3temp/assets/tx_instagram/{image.id}.jpg" alt="{image.caption}" width="500c" height="500c" />
+											</f:then>
+											<f:else>
+												<img src="{image.media_url}" alt="{image.caption}" width="500" height="500" />
+											</f:else>
+										</instagram:isLocalImageExisting>
+									</div>
+								</f:if>
+							</f:for>
+						</f:then>
+						<f:else>
+							<div class="alert alert-danger" role="alert">
+								<p>No feed found in database to given username. Please use scheduler to import feeds first. See documentation for more details.</p>
+							</div>
+						</f:else>
+					</f:if>
+
+				</f:alias>
+			</div>
+		</div>
+	</instagram:backend.editLink>
+</instagram:backend.catch>

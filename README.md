@@ -42,8 +42,6 @@ Import the latest posts and reels:
  xxx@yyy.com
  ```
 
-
-
 ### Scheduler
 
 #### Import images
@@ -56,6 +54,12 @@ error happens (and you want get notified).
 |----------|------------------------------------------------------------------------------------------------------------------------------------------|
 | notify   | Optional: Get notified via email if a CURL error occurs (e.g. if instagram blocks your requests). Commaseparated email list is provided. |
 | post-url   | Apify Endpoint for Posts                                                                                                                 |
+
+### Output
+
+You can use the `tx_instagram_pi1` plugin to render the output of the extension in a page. There also is a plugin `tx_instagram_json` for JSON output, rather hacky, but working.
+
+The difference in the JSON output vs. calling apify directly is that the plugin uses the locally stored displayUrl and videoUrl if possible.
 
 ### HTML output modification
 
@@ -78,48 +82,74 @@ Example html:
 
 ```
 <html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
-	  xmlns:instagram="http://typo3.org/ns/In2code/Instagram/ViewHelpers"
+	  xmlns:instagram="http://typo3.org/ns/SaschaSchieferdecker/Instagram/ViewHelpers"
 	  data-namespace-typo3-fluid="true">
 
 <div class="c-socialwall">
 	<div class="c-socialwall">
-		<f:for each="{feed.data}" as="image" iteration="iteration">
+		<f:for each="{feedposts}" as="post" iteration="iteration">
 			<f:if condition="{iteration.cycle} <= {settings.limit}">
 				<div class="c-socialwall__item c-socialwall__item--instagram">
-					<f:link.external uri="{image.permalink}" title="Instagram profile {settings.username}" target="_blank" rel="noopener">
-						<instagram:isLocalImageExisting id="{image.id}">
+					<f:link.external uri="{post.url}" title="Instagram profile {settings.username}" target="_blank"
+									 rel="noopener">
+						<f:if condition="{post.videoUrl}">
 							<f:then>
-								<picture>
-									<source srcset="{f:uri.image(src:'/typo3temp/assets/tx_instagram/{image.id}.jpg', width:'500c', height:'500c', fileExtension: 'webp')}" type="image/webp">
-									<source srcset="{f:uri.image(src:'/typo3temp/assets/tx_instagram/{image.id}.jpg', width:'500c', height:'500c', fileExtension: 'jpg')}" type="image/jpeg">
-
-									<img
-										src="{f:uri.image(src:'/typo3temp/assets/tx_instagram/{image.id}.jpg', width:'500c', height:'500c')}"
-										title="{image.caption -> f:format.crop(maxCharacters: 120, append: ' ...')}"
-										alt="{image.caption -> f:format.crop(maxCharacters: 120, append: ' ...')}"
-										loading="lazy" />
-								</picture>
+								<instagram:isLocalImageExisting id="{post.id}">
+									<f:then>
+										<video src="/typo3temp/assets/tx_instagram/{post.id}.mp4"
+											   width="500" height="500" preload="none"
+											   style="height: 500px"
+											   autoplay muted>
+										</video>
+									</f:then>
+									<f:else>
+										<video src="{post.videoUrl}"
+											   width="500" height="500" preload="none"
+											   style="height: 500px"
+											   autoplay muted>
+										</video>
+									</f:else>
+								</instagram:isLocalImageExisting>
 							</f:then>
 							<f:else>
-								<f:comment>
-									If image is not available on the local machine (for any reasons), load from instagram directly
-								</f:comment>
-								<img
-									src="{image.media_url}"
-									title="{image.caption -> f:format.crop(maxCharacters: 120, append: ' ...')}"
-									alt="{image.caption -> f:format.crop(maxCharacters: 120, append: ' ...')}"
-									width="500"
-									height="500" />
+								<instagram:isLocalImageExisting id="{post.id}">
+									<f:then>
+										<picture>
+											<source
+												srcset="{f:uri.image(src:'/typo3temp/assets/tx_instagram/{post.id}.jpg', width:'500c', height:'500c', fileExtension: 'jpg')}"
+												type="image/jpeg">
+											<img
+												src="{f:uri.image(src:'/typo3temp/assets/tx_instagram/{post.id}.jpg', width:'500c', height:'500c')}"
+												title="{post.caption -> f:format.crop(maxCharacters: 120, append: ' ...')}"
+												alt="{post.caption -> f:format.crop(maxCharacters: 120, append: ' ...')}"
+												loading="lazy"/>
+										</picture>
+									</f:then>
+									<f:else>
+										<f:comment>
+											If image is not available on the local machine (for any reasons), load from
+											instagram directly
+										</f:comment>
+										<img
+											src="{post.displayUrl}"
+											title="{post.caption -> f:format.crop(maxCharacters: 120, append: ' ...')}"
+											alt="{post.caption -> f:format.crop(maxCharacters: 120, append: ' ...')}"
+											width="500"
+											height="500"/>
+									</f:else>
+								</instagram:isLocalImageExisting>
 							</f:else>
-						</instagram:isLocalImageExisting>
-
-						<p>{image.caption}</p>
+						</f:if>
+						<p>{post.caption}</p>
 					</f:link.external>
 				</div>
 			</f:if>
 		</f:for>
 	</div>
 </div>
+
+</html>
+
 
 </html>
 ```

@@ -116,9 +116,7 @@ class PrepareFeed
                 throw new ApiConnectionException('Image could not be fetched from ' . $url, 1615759345);
             }
         } catch (\Exception $exception) {
-            return  '';
-            // Do not throw exception here
-            //throw new ApiConnectionException($exception->getMessage(), 1615759354);
+            throw new ApiConnectionException($exception->getMessage(), 1615759354);
         }
         return $content;
     }
