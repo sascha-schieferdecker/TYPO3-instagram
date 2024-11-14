@@ -16,7 +16,7 @@
 							<label>username</label>
 							<config>
 								<type>input</type>
-								<placeholder></placeholder>
+								<placeholder>username</placeholder>
 								<eval>trim,required</eval>
 							</config>
 						</TCEforms>
@@ -28,7 +28,6 @@
 							<config>
 								<type>input</type>
 								<default>10</default>
-								<placeholder></placeholder>
 								<eval>int,required</eval>
 							</config>
 						</TCEforms>

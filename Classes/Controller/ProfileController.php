@@ -34,4 +34,12 @@ class ProfileController extends ActionController
         ]);
         return $this->htmlResponse();
     }
+
+    public function jsonAction()
+    {
+        $feedposts = $this->feedRepository->findDataByUsername((string)$this->settings['username'], (int) $this->settings['limit']);
+        header('Content-Type: application/json');
+        echo json_encode($feedposts);
+        die();
+    }
 }

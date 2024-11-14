@@ -9,5 +9,14 @@ mod.wizards.newContentElement.wizardItems.plugins {
 				list_type = instagram_pi1
 			}
 		}
+		instagramjson {
+			iconIdentifier = extension-instagram
+			title = Instagram Plugin JSON
+			description = JSON Output of feed
+			tt_content_defValues {
+				CType = list
+				list_type = instagram_json
+			}
+		}
 	}
 }

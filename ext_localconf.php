@@ -14,7 +14,14 @@ call_user_func(
             'Pi1',
             [
                 \SaschaSchieferdecker\Instagram\Controller\ProfileController::class => 'show'
-            ]
+            ],
+        );
+        \TYPO3\CMS\Extbase\Utility\ExtensionUtility::configurePlugin(
+            'Instagram',
+            'Json',
+            [
+                \SaschaSchieferdecker\Instagram\Controller\ProfileController::class => 'json'
+            ],
         );
 
         /**
