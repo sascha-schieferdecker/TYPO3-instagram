@@ -70,15 +70,16 @@ class ImportFeedCommand extends Command
             if (count($feed) > 0) {
                 foreach ($feed as $username => $group) {
                     $feedUid = $this->feedRepository->insertFeed($username);
+                    $count = 0;
                     foreach ($group as $item) {
+                            $count++;
                             $this->feedRepository->insertPost($feedUid, $item);
                     }
+                    $output->writeln(
+                        $count . ' stories from ' . $username . ' stored into database'
+                    );
                 }
             }
-            /*$this->feedRepository->insert($feed);
-            $output->writeln(
-                count($feed['data']) . ' stories from ' . $input->getArgument('username') . ' stored into database'
-            );*/
             return 0;
         } catch (\Exception $exception) {
             $output->writeln('Feed could not be fetched from Instagram');
