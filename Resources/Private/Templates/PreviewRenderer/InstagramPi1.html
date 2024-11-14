@@ -9,9 +9,9 @@
 
 			<div class="row row-no-gutters">
 				<f:alias map="{images:'{instagram:backend.getFeed(flexForm:flexForm)}'}">
-					<f:if condition="{images.data -> f:count()} > 0">
+					<f:if condition="{images -> f:count()} > 0">
 						<f:then>
-							<f:for each="{images.data}" as="image" iteration="iteration">
+							<f:for each="{images}" as="image" iteration="iteration">
 								<f:if condition="{iteration.cycle} < 7">
 									<div class="col-md-2">
 										<instagram:isLocalImageExisting id="{image.id}">

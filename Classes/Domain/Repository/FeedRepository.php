@@ -2,6 +2,8 @@
 declare(strict_types=1);
 namespace SaschaSchieferdecker\Instagram\Domain\Repository;
 
+use Doctrine\DBAL\Exception as DBALException;
+use Doctrine\DBAL\Driver\Exception;
 use SaschaSchieferdecker\Instagram\Utility\ArrayUtility;
 use SaschaSchieferdecker\Instagram\Utility\DatabaseUtility;
 
@@ -15,10 +17,9 @@ class FeedRepository
     const TABLE_POSTS = 'tx_instagram_post';
 
     /**
-     * @param string $username
      * @return array
      */
-    public function findDataByUsername(string $username): array
+    public function findDataByUsername(string $username, int $limit = 10): array
     {
         $queryBuilder = DatabaseUtility::getQueryBuilderForTable(self::TABLE_FEEDS);
         $data = (string)$queryBuilder
@@ -31,17 +32,38 @@ class FeedRepository
             ->orderBy('uid', 'desc')
             ->executeQuery()
             ->fetchOne();
-        dump($data);
-        if (ArrayUtility::isJsonArray($data)) {
-            return json_decode($data, true);
+        if ($data !== '') {
+            return $this->findDataByFeedUid((int)$data, $limit);
         }
         return [];
     }
 
+    public function findDataByFeedUid(int $feedUid, int $limit = 10): array
+    {
+        $result = [];
+        $queryBuilder = DatabaseUtility::getQueryBuilderForTable(self::TABLE_POSTS);
+        $data = $queryBuilder
+            ->select('content')
+            ->from(self::TABLE_POSTS)
+            ->where(
+                $queryBuilder->expr()->eq('feed_uid', $queryBuilder->createNamedParameter($feedUid))
+            )
+            ->setMaxResults($limit)
+            ->executeQuery()
+            ->fetchAllAssociative();
+        foreach ($data as $item) {
+            if (ArrayUtility::isJsonArray((string) $item['content'])) {
+                $result[] = json_decode((string) $item['content'], true);
+            }
+        }
+        return $result;
+    }
+
     /**
      * @param string $username
-     * @param array $feed
-     * @return void
+     * @return int
+     * @throws DBALException
+     * @throws Exception
      */
     public function insertFeed(string $username): int
     {
@@ -75,16 +97,23 @@ class FeedRepository
 
     public function insertPost(int $feedUid, array $post): void
     {
-        $queryBuilder = DatabaseUtility::getQueryBuilderForTable(self::TABLE_POSTS);
-        $queryBuilder
-            ->insert(self::TABLE_POSTS)
-            ->values([
-                'feed_uid' => $feedUid,
-                'uid' => $post['id'],
-                'content' => json_encode($post),
-                'tstamp' => strtotime($post['timestamp'])
-            ])
-            ->executeStatement();
+        $postExists = $this->postExists($feedUid, $post['id']);
+
+        if ($postExists === false) {
+            $queryBuilder = DatabaseUtility::getQueryBuilderForTable(self::TABLE_POSTS);
+            $queryBuilder
+                ->insert(self::TABLE_POSTS)
+                ->values([
+                    'feed_uid' => $feedUid,
+                    'uid' => $post['id'],
+                    'content' => json_encode($post),
+                    'tstamp' => strtotime($post['timestamp'])
+                ])
+                ->executeStatement();
+        }
+        else {
+            $this->updatePost($feedUid, $post);
+        }
     }
 
     public function updatePost(int $feedUid, array $post): void

@@ -71,13 +71,7 @@ class ImportFeedCommand extends Command
                 foreach ($feed as $username => $group) {
                     $feedUid = $this->feedRepository->insertFeed($username);
                     foreach ($group as $item) {
-                        $postExists = $this->feedRepository->postExists($feedUid, $item['id']);
-                        if ($postExists == false) {
                             $this->feedRepository->insertPost($feedUid, $item);
-                        }
-                        else {
-                            $this->feedRepository->updatePost($feedUid, $item);
-                        }
                     }
                 }
             }
