@@ -42,9 +42,17 @@ Import the latest posts and reels:
  xxx@yyy.com
  ```
 
+#### Cleanup Feeds
+
+Delete all posts and media except the last 10 per feed:
+
+```bash
+./vendor/bin/typo3 instagram:cleanupfeed 10
+ ```
+
 ### Scheduler
 
-#### Import images
+#### Import Feed
 
 Add a new scheduler task of type `Execute console commands (scheduler)` and select `instagram:importfeed`. Now you can
 add a frequency (e.g. `*/30 * * * *` for every 30 minutes), a instagram username and one (or more) email address if
@@ -55,7 +63,7 @@ error happens (and you want get notified).
 | notify   | Optional: Get notified via email if a CURL error occurs (e.g. if instagram blocks your requests). Commaseparated email list is provided. |
 | post-url   | Apify Endpoint for Posts                                                                                                                |
 
-### Cleanup Images
+### Cleanup Feeds
 
 Add a new scheduler task of type `Execute console commands (scheduler)` and select `instagram:cleanupfeed`. Now you can add a frequency (e.g. `*/30 * * * *` for every 30 minutes).
 
