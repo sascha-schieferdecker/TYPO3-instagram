@@ -21,6 +21,18 @@
 							</config>
 						</TCEforms>
 					</settings.username>
+					<settings.limit>
+						<TCEforms>
+							<exclude>1</exclude>
+							<label>Limit</label>
+							<config>
+								<type>input</type>
+								<default>10</default>
+								<placeholder></placeholder>
+								<eval>int,required</eval>
+							</config>
+						</TCEforms>
+					</settings.limit>
 				</el>
 			</ROOT>
 		</main>

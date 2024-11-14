@@ -28,12 +28,9 @@ class ProfileController extends ActionController
 
     public function showAction(): ResponseInterface
     {
-        $feedposts = $this->feedRepository->findDataByApiUrl((string)$this->settings['apiposts']);
-        $feedreels = $this->feedRepository->findDataByApiUrl((string)$this->settings['apireels']);
+        $feedposts = $this->feedRepository->findDataByUsername((string)$this->settings['username'], (int) $this->settings['limit']);
         $this->view->assignMultiple([
-            'data' => $this->request->getAttribute('currentContentObject')->data,
             'feedposts' => $feedposts,
-            'feedreels' => $feedreels
         ]);
         return $this->htmlResponse();
     }

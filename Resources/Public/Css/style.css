@@ -9,7 +9,8 @@
 .c-socialwall__item {
     position: relative;
     overflow: hidden;
-    flex: 0 0 50%
+    flex: 0 0 50%;
+    aspect-ratio: 1/1;
 }
 
 @media screen and (min-width: 600px) {
@@ -27,7 +28,7 @@
 .c-socialwall__item a {
     display: inline-block;
     width: 100%;
-    text-align: center
+    text-align: center;
 }
 
 .c-socialwall__item img {
@@ -36,7 +37,21 @@
     min-width: 100%;
     -o-object-fit: cover;
     object-fit: cover;
+    object-align: center center;
     vertical-align: text-bottom
+}
+
+.c-socialwall__item video {
+    position: relative;
+    top: 40%;
+    transform: translateY(-40%);
+    max-height: 100%;
+    max-width: 100%;
+    min-width: 100%;
+    -o-object-fit: cover;
+    object-fit: cover;
+    vertical-align: text-bottom;
+    overflow: hidden;
 }
 
 .c-socialwall__item p {
