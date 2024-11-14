@@ -50,10 +50,18 @@ Add a new scheduler task of type `Execute console commands (scheduler)` and sele
 add a frequency (e.g. `*/30 * * * *` for every 30 minutes), a instagram username and one (or more) email address if
 error happens (and you want get notified).
 
-| Field    | Description                                                                                                                              |
-|----------|------------------------------------------------------------------------------------------------------------------------------------------|
+| Field    | Description                                                                                                                             |
+|----------|-----------------------------------------------------------------------------------------------------------------------------------------|
 | notify   | Optional: Get notified via email if a CURL error occurs (e.g. if instagram blocks your requests). Commaseparated email list is provided. |
-| post-url   | Apify Endpoint for Posts                                                                                                                 |
+| post-url   | Apify Endpoint for Posts                                                                                                                |
+
+### Cleanup Images
+
+Add a new scheduler task of type `Execute console commands (scheduler)` and select `instagram:cleanupfeed`. Now you can add a frequency (e.g. `*/30 * * * *` for every 30 minutes).
+
+| Field | Description                                                         |
+|-------|---------------------------------------------------------------------|
+| keep  | Number of posts to keep per feed. Unused images are deleted as well |
 
 ### Output
 
@@ -160,7 +168,7 @@ If you want to have basic styling for the default layout present in the extensio
 static template "Instagram" on your page.
 
 
-### Exmample structure of a post
+### Example structure of a post
 
 ```json
 {

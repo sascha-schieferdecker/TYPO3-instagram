@@ -14,4 +14,13 @@ services:
     tags:
       - name: 'console.command'
         command: 'instagram:importfeed'
+        description: 'Imports the feed'
+        schedulable: true
+
+
+  SaschaSchieferdecker\Instagram\Command\CleanupFeedCommand:
+    tags:
+      - name: 'console.command'
+        command: 'instagram:cleanupfeed'
+        description: 'Cleans old posts and images'
         schedulable: true

@@ -69,6 +69,22 @@ class PrepareFeed
         return $result;
     }
 
+    public function CleanUp(array $postuids)
+    {
+        try {
+            $path = GeneralUtility::getFileAbsFileName($this->imageFolder);
+            $files = array_diff(scandir($path), array('..', '.'));
+            foreach ($files as $file) {
+                if (!in_array((int)str_replace(['.jpg', '.mp4'], ['', ''], $file), $postuids)) {
+                    unlink($path.$file);
+                }
+            }
+        }
+        catch (\Exception $e) {
+            throw new ApiConnectionException($e->getMessage(), 1615754880);
+        }
+    }
+
     /**
      * @param array $feed
      * @return array
@@ -82,7 +98,7 @@ class PrepareFeed
 
             foreach ($feed as $group) {
                 foreach ($group as $item) {
-                    $pathAndName = GeneralUtility::getFileAbsFileName($this->imageFolder) . $item['id'] . '.jpg';
+                    $pathAndName = GeneralUtility::getFileAbsFileName($this->imageFolder) . (int) $item['id'] . '.jpg';
                     if (!file_exists($pathAndName)) {
                         $imageContent = $this->getImageContent($item['displayUrl']);
                         if ($imageContent !== '') {
@@ -90,7 +106,7 @@ class PrepareFeed
                         }
                         if ($item['type'] === 'Video') {
                             $imageContent = $this->getImageContent($item['videoUrl']);
-                            $pathAndName = GeneralUtility::getFileAbsFileName($this->imageFolder) . $item['id'] . '.mp4';
+                            $pathAndName = GeneralUtility::getFileAbsFileName($this->imageFolder) . (int) $item['id'] . '.mp4';
                             if ($imageContent != '') {
                                 GeneralUtility::writeFile($pathAndName, $imageContent, true);;
                             }

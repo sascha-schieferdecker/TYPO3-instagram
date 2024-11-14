@@ -48,6 +48,7 @@ class FeedRepository
             ->where(
                 $queryBuilder->expr()->eq('feed_uid', $queryBuilder->createNamedParameter($feedUid))
             )
+            ->orderBy('tstamp', 'desc')
             ->setMaxResults($limit)
             ->executeQuery()
             ->fetchAllAssociative();
@@ -59,6 +60,37 @@ class FeedRepository
         return $result;
     }
 
+    public function cleanupFeeds(int $limit)
+    {
+        // Get all feeds
+        $queryBuilder = DatabaseUtility::getQueryBuilderForTable(self::TABLE_FEEDS);
+        $feeds = $queryBuilder
+            ->select('uid')
+            ->from(self::TABLE_FEEDS)
+            ->orderBy('import_date', 'asc')
+            ->executeQuery()
+            ->fetchAllAssociative();
+
+        $uidsToKeep = [];
+        foreach ($feeds as $feed) {
+            $feedUid = (int) $feed['uid'];
+            $posts = $this->findDataByFeedUid($feedUid, $limit);
+            foreach ($posts as $post) {
+                $uidsToKeep[] = (int) $post['id'];
+            }
+        }
+        // Now delete all posts that are not in $uidsToKeep
+        $queryBuilder = DatabaseUtility::getQueryBuilderForTable(self::TABLE_POSTS);
+        $queryBuilder
+            ->delete(self::TABLE_POSTS)
+            ->where(
+                $queryBuilder->expr()->notIn('uid', $uidsToKeep),
+            )
+            ->executeStatement();
+
+        return $uidsToKeep;
+    }
+
     /**
      * @param string $username
      * @return int
@@ -67,7 +99,6 @@ class FeedRepository
      */
     public function insertFeed(string $username): int
     {
-        $feedUid = 0;
         $queryBuilder = DatabaseUtility::getQueryBuilderForTable(self::TABLE_FEEDS);
         $data = $queryBuilder
             ->select('uid')
