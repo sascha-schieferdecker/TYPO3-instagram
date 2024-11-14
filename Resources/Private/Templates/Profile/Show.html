@@ -7,39 +7,52 @@
 		<f:for each="{feedposts}" as="post" iteration="iteration">
 			<f:if condition="{iteration.cycle} <= {settings.limit}">
 				<div class="c-socialwall__item c-socialwall__item--instagram">
-					<f:link.external uri="{post.url}" title="Instagram profile {settings.username}" target="_blank" rel="noopener">
+					<f:link.external uri="{post.url}" title="Instagram profile {settings.username}" target="_blank"
+									 rel="noopener">
 						<f:if condition="{post.videoUrl}">
 							<f:then>
-								<div class="video-weapper">
-								<video src="/typo3temp/assets/tx_instagram/{post.id}.mp4"
-									   width="500" height="500" preload="none"
-									   style="height: 500px"
-									   autoplay muted>
-								</video>
-								</div>
+								<instagram:isLocalImageExisting id="{post.id}">
+									<f:then>
+										<video src="/typo3temp/assets/tx_instagram/{post.id}.mp4"
+											   width="500" height="500" preload="none"
+											   style="height: 500px"
+											   autoplay muted>
+										</video>
+									</f:then>
+									<f:else>
+										<video src="{post.videoUrl}"
+											   width="500" height="500" preload="none"
+											   style="height: 500px"
+											   autoplay muted>
+										</video>
+									</f:else>
+								</instagram:isLocalImageExisting>
 							</f:then>
 							<f:else>
 								<instagram:isLocalImageExisting id="{post.id}">
 									<f:then>
 										<picture>
-											<source srcset="{f:uri.image(src:'/typo3temp/assets/tx_instagram/{post.id}.jpg', width:'500c', height:'500c', fileExtension: 'jpg')}" type="image/jpeg">
+											<source
+												srcset="{f:uri.image(src:'/typo3temp/assets/tx_instagram/{post.id}.jpg', width:'500c', height:'500c', fileExtension: 'jpg')}"
+												type="image/jpeg">
 											<img
 												src="{f:uri.image(src:'/typo3temp/assets/tx_instagram/{post.id}.jpg', width:'500c', height:'500c')}"
 												title="{post.caption -> f:format.crop(maxCharacters: 120, append: ' ...')}"
 												alt="{post.caption -> f:format.crop(maxCharacters: 120, append: ' ...')}"
-												loading="lazy" />
+												loading="lazy"/>
 										</picture>
 									</f:then>
 									<f:else>
 										<f:comment>
-											If image is not available on the local machine (for any reasons), load from instagram directly
+											If image is not available on the local machine (for any reasons), load from
+											instagram directly
 										</f:comment>
 										<img
 											src="{post.displayUrl}"
 											title="{post.caption -> f:format.crop(maxCharacters: 120, append: ' ...')}"
 											alt="{post.caption -> f:format.crop(maxCharacters: 120, append: ' ...')}"
 											width="500"
-											height="500" />
+											height="500"/>
 									</f:else>
 								</instagram:isLocalImageExisting>
 							</f:else>

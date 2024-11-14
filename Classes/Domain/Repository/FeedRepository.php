@@ -52,8 +52,8 @@ class FeedRepository
             ->executeQuery()
             ->fetchAllAssociative();
         foreach ($data as $item) {
-            if (ArrayUtility::isJsonArray((string) $item['content'])) {
-                $result[] = json_decode((string) $item['content'], true);
+            if (ArrayUtility::isJsonArray(base64_decode((string) $item['content']))) {
+                $result[] = json_decode((string) base64_decode($item['content']), true);
             }
         }
         return $result;
@@ -106,7 +106,7 @@ class FeedRepository
                 ->values([
                     'feed_uid' => $feedUid,
                     'uid' => $post['id'],
-                    'content' => json_encode($post),
+                    'content' => base64_encode(json_encode($post)),
                     'tstamp' => strtotime($post['timestamp'])
                 ])
                 ->executeStatement();
@@ -125,7 +125,7 @@ class FeedRepository
                 $queryBuilder->expr()->eq('uid', $queryBuilder->createNamedParameter($post['id'])),
                 $queryBuilder->expr()->eq('feed_uid', $queryBuilder->createNamedParameter($feedUid))
             )
-            ->set('content', json_encode($post))
+            ->set('content', base64_encode(json_encode($post)))
             ->set('tstamp', strtotime($post['timestamp']))
             ->executeStatement();
     }

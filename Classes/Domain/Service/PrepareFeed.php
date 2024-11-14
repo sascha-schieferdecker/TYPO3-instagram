@@ -85,11 +85,15 @@ class PrepareFeed
                     $pathAndName = GeneralUtility::getFileAbsFileName($this->imageFolder) . $item['id'] . '.jpg';
                     if (!file_exists($pathAndName)) {
                         $imageContent = $this->getImageContent($item['displayUrl']);
-                        GeneralUtility::writeFile($pathAndName, $imageContent, true);
+                        if ($imageContent !== '') {
+                            GeneralUtility::writeFile($pathAndName, $imageContent, true);
+                        }
                         if ($item['type'] === 'Video') {
                             $imageContent = $this->getImageContent($item['videoUrl']);
                             $pathAndName = GeneralUtility::getFileAbsFileName($this->imageFolder) . $item['id'] . '.mp4';
-                            GeneralUtility::writeFile($pathAndName, $imageContent, true);;
+                            if ($imageContent != '') {
+                                GeneralUtility::writeFile($pathAndName, $imageContent, true);;
+                            }
                         }
                     }
                 }
@@ -112,7 +116,9 @@ class PrepareFeed
                 throw new ApiConnectionException('Image could not be fetched from ' . $url, 1615759345);
             }
         } catch (\Exception $exception) {
-            throw new ApiConnectionException($exception->getMessage(), 1615759354);
+            return  '';
+            // Do not throw exception here
+            //throw new ApiConnectionException($exception->getMessage(), 1615759354);
         }
         return $content;
     }
