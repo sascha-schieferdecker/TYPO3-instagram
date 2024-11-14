@@ -13,7 +13,7 @@ as an API provider.
 
 ## Installation
 
-Clone the repo into your local packages directory and set up your root composer.json as follows:
+Clone the repo into your local packages directory in a folder named "instagram" and set up your root composer.json as follows:
 
 ```json
 ...
