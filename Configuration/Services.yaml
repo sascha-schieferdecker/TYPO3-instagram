@@ -1,0 +1,17 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  SaschaSchieferdecker\Instagram\Controller\ProfileController:
+    public: true
+
+  SaschaSchieferdecker\Instagram\Domain\Repository\FeedRepository:
+    public: true
+
+  SaschaSchieferdecker\Instagram\Command\ImportFeedCommand:
+    tags:
+      - name: 'console.command'
+        command: 'instagram:importfeed'
+        schedulable: true

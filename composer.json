@@ -1,0 +1,35 @@
+{
+  "name": "saschaschieferdecker/instagram",
+  "description": "Show images and posts from instagram profiles",
+  "keywords": [
+    "instagram"
+  ],
+  "homepage": "https://github.com/saschaschieferdecker/instagram",
+  "authors": [
+    {
+      "name": "Alex Kellner",
+      "email": "alexander.kellner@in2code.de"
+    },
+    {
+      "name": "Sascha Schieferdecker",
+      "email": "apps@sascha-schieferdecker.de"
+    }
+  ],
+  "type": "typo3-cms-extension",
+  "license": "GPL-2.0-or-later",
+  "require": {
+    "php": "^7.4 || ^8.0",
+    "typo3/cms-core": "^11.5 || ^12.4",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "SaschaSchieferdecker\\Instagram\\": "Classes/"
+    }
+  },
+  "extra": {
+    "typo3/cms": {
+      "extension-key": "instagram"
+    }
+  }
+}

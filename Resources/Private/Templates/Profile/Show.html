@@ -1,0 +1,46 @@
+<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
+	  xmlns:instagram="http://typo3.org/ns/In2code/Instagram/ViewHelpers"
+	  data-namespace-typo3-fluid="true">
+
+<div class="c-socialwall">
+	<div class="c-socialwall">
+		<f:for each="{feed.data}" as="image" iteration="iteration">
+			<f:if condition="{iteration.cycle} <= {settings.limit}">
+				<div class="c-socialwall__item c-socialwall__item--instagram">
+					<f:link.external uri="{image.permalink}" title="Instagram profile {settings.username}" target="_blank" rel="noopener">
+
+						<instagram:isLocalImageExisting id="{image.id}">
+							<f:then>
+								<picture>
+									<source srcset="{f:uri.image(src:'/typo3temp/assets/tx_instagram/{image.id}.jpg', width:'500c', height:'500c', fileExtension: 'webp')}" type="image/webp">
+									<source srcset="{f:uri.image(src:'/typo3temp/assets/tx_instagram/{image.id}.jpg', width:'500c', height:'500c', fileExtension: 'jpg')}" type="image/jpeg">
+
+									<img
+										src="{f:uri.image(src:'/typo3temp/assets/tx_instagram/{image.id}.jpg', width:'500c', height:'500c')}"
+										title="{image.caption -> f:format.crop(maxCharacters: 120, append: ' ...')}"
+										alt="{image.caption -> f:format.crop(maxCharacters: 120, append: ' ...')}"
+										loading="lazy" />
+								</picture>
+							</f:then>
+							<f:else>
+								<f:comment>
+									If image is not available on the local machine (for any reasons), load from instagram directly
+								</f:comment>
+								<img
+									src="{f:if(condition: image.thumbnail_url, then: image.thumbnail_url, else: image.media_url)}"
+									title="{image.caption -> f:format.crop(maxCharacters: 120, append: ' ...')}"
+									alt="{image.caption -> f:format.crop(maxCharacters: 120, append: ' ...')}"
+									width="500"
+									height="500" />
+							</f:else>
+						</instagram:isLocalImageExisting>
+
+						<p>{image.caption}</p>
+					</f:link.external>
+				</div>
+			</f:if>
+		</f:for>
+	</div>
+</div>
+
+</html>
