@@ -39,10 +39,10 @@ class NotificationMail
         /** @var FluidEmail $email */
         $email = GeneralUtility::makeInstance(FluidEmail::class)
             ->to($email)
-            ->subject('in2code/instagram failure')
+            ->subject('saschaschieferdecker/instagram failure')
             ->setTemplate('Default')
             ->assignMultiple([
-                'headline' => 'in2code/instagram failure',
+                'headline' => 'saschaschieferdecker/instagram failure',
                 'introduction' =>
                     'Failure while trying to import a feed from instagram.com. Please check your tasks manually.',
                 'content' => $message

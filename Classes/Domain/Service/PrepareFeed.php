@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
+
 namespace SaschaSchieferdecker\Instagram\Domain\Service;
+
 use SaschaSchieferdecker\Instagram\Exception\ApiConnectionException;
 use SaschaSchieferdecker\Instagram\Utility\FileUtility;
 use TYPO3\CMS\Core\Http\RequestFactory;
@@ -11,129 +13,118 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  */
 class PrepareFeed
 {
-    /**
-     * @var string
-     */
-    protected $imageFolder = 'typo3temp/assets/tx_instagram/';
+    protected const IMAGE_FOLDER = 'typo3temp/assets/tx_instagram/';
+    protected const STORE_IMAGES = true;
 
-    /**
-     * @var bool
-     */
-    protected $storeImages = true;
+    protected RequestFactory $requestFactory;
 
-    /**
-     * @var RequestFactory
-     */
-    protected $requestFactory;
-
-    /**
-     * GetFeed constructor.
-     */
     public function __construct()
     {
         $this->requestFactory = GeneralUtility::makeInstance(RequestFactory::class);
     }
 
-    /**
-     * @param string $username
-     * @return array
-     * @throws ApiConnectionException
-     */
-    /*public function getByUsername(string $username): array
+    public function joinAndSort(string $postsUrl): array
     {
-        $feed = $this->instagramRepository->getFeed($username);
-        $this->persistImages($feed);
-        return $feed;
-    }*/
+        $posts = $this->fetchPosts($postsUrl);
+        $sortedPosts = $this->sortPostsByOwnerAndTimestamp($posts);
 
-    public function joinAndSort(string $posts_url)
+        if (!empty($sortedPosts)) {
+            $this->persistImages($sortedPosts);
+        }
+
+        return $sortedPosts;
+    }
+
+    protected function fetchPosts(string $url): array
     {
-        $result = [];
-        $request = $this->requestFactory->request($posts_url);
-        if ($request->getStatusCode() !== 200) {
+        $response = $this->requestFactory->request($url);
+        if ($response->getStatusCode() !== 200) {
             throw new ApiConnectionException('Could not refresh token', 1615754880);
         }
-        $posts = json_decode($request->getBody()->getContents(), true);
+        return json_decode($response->getBody()->getContents(), true);
+    }
+
+    protected function sortPostsByOwnerAndTimestamp(array $posts): array
+    {
+        $result = [];
         foreach ($posts as $post) {
             $post['dataType'] = 'post';
             $result[$post['ownerUsername']][] = $post;
         }
         foreach ($result as &$group) {
-            usort($group, function($a, $b) {
-                return $b['timestamp'] <=> $a['timestamp'];
-            });
-        }
-        if (count($result) > 0) {
-            $this->persistImages($result);
+            usort($group, fn($a, $b) => $b['timestamp'] <=> $a['timestamp']);
         }
         return $result;
     }
 
-    public function CleanUp(array $postuids)
+    public function cleanUp(array $postIds): void
+    {
+        $path = GeneralUtility::getFileAbsFileName(self::IMAGE_FOLDER);
+        $this->removeObsoleteFiles($path, $postIds);
+    }
+
+    protected function removeObsoleteFiles(string $path, array $postIds): void
     {
         try {
-            $path = GeneralUtility::getFileAbsFileName($this->imageFolder);
-            $files = array_diff(scandir($path), array('..', '.'));
+            $files = array_diff(scandir($path), ['..', '.']);
             foreach ($files as $file) {
-                if (!in_array((int)str_replace(['.jpg', '.mp4'], ['', ''], $file), $postuids)) {
-                    unlink($path.$file);
+                if (!in_array((int)str_replace(['.jpg', '.mp4'], ['', ''], $file), $postIds)) {
+                    unlink($path . $file);
                 }
             }
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             throw new ApiConnectionException($e->getMessage(), 1615754880);
         }
     }
 
-    /**
-     * @param array $feed
-     * @return array
-     * @throws ApiConnectionException
-     */
     protected function persistImages(array $feed): void
     {
-        if ($this->storeImages) {
-            $path = GeneralUtility::getFileAbsFileName($this->imageFolder);
+        if (self::STORE_IMAGES) {
+            $path = GeneralUtility::getFileAbsFileName(self::IMAGE_FOLDER);
             FileUtility::createFolderIfNotExists($path);
 
             foreach ($feed as $group) {
                 foreach ($group as $item) {
-                    $pathAndName = GeneralUtility::getFileAbsFileName($this->imageFolder) . (int) $item['id'] . '.jpg';
-                    if (!file_exists($pathAndName)) {
-                        $imageContent = $this->getImageContent($item['displayUrl']);
-                        if ($imageContent !== '') {
-                            GeneralUtility::writeFile($pathAndName, $imageContent, true);
-                        }
-                        if ($item['type'] === 'Video') {
-                            $imageContent = $this->getImageContent($item['videoUrl']);
-                            $pathAndName = GeneralUtility::getFileAbsFileName($this->imageFolder) . (int) $item['id'] . '.mp4';
-                            if ($imageContent != '') {
-                                GeneralUtility::writeFile($pathAndName, $imageContent, true);;
-                            }
-                        }
+                    $this->storeImage($path, $item);
+                    if ($item['type'] === 'Video') {
+                        $this->storeVideo($path, $item);
                     }
                 }
             }
         }
     }
 
-    /**
-     * @param string $url
-     * @return string
-     * @throws ApiConnectionException
-     */
-    protected function getImageContent(string $url): string
+    protected function storeImage(string $path, array $item): void
+    {
+        $pathAndName = $path . (int)$item['id'] . '.jpg';
+        if (!file_exists($pathAndName)) {
+            $imageContent = $this->fetchContent($item['displayUrl']);
+            if ($imageContent !== '') {
+                GeneralUtility::writeFile($pathAndName, $imageContent, true);
+            }
+        }
+    }
+
+    protected function storeVideo(string $path, array $item): void
+    {
+        $imageContent = $this->fetchContent($item['videoUrl']);
+        $pathAndName = $path . (int)$item['id'] . '.mp4';
+        if ($imageContent !== '') {
+            GeneralUtility::writeFile($pathAndName, $imageContent, true);
+        }
+    }
+
+    protected function fetchContent(string $url): string
     {
         try {
             $response = $this->requestFactory->request($url);
             if ($response->getStatusCode() === 200) {
-                $content = $response->getBody()->getContents();
+                return $response->getBody()->getContents();
             } else {
                 throw new ApiConnectionException('Image could not be fetched from ' . $url, 1615759345);
             }
         } catch (\Exception $exception) {
             throw new ApiConnectionException($exception->getMessage(), 1615759354);
         }
-        return $content;
     }
 }
