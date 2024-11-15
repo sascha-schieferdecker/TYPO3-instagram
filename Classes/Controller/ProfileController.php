@@ -34,7 +34,15 @@ class ProfileController extends ActionController
 
     public function showAction(): ResponseInterface
     {
-        $feedposts = $this->feedRepository->findDataByUsername((string)$this->settings['username'], (int) $this->settings['limit']);
+        if (strpos($this->settings['usernames'], "\n") !== false)
+        {
+            $usernames = explode("\n", $this->settings['usernames']);
+            $feedposts = $this->feedRepository->findDataByMultipleUsernames($usernames);
+        }
+        else
+        {
+            $feedposts = $this->feedRepository->findDataByUsername((string)$this->settings['usernames'], (int) $this->settings['limit']);
+        }
         $this->view->assignMultiple([
             'feedposts' => $feedposts,
         ]);
@@ -43,7 +51,15 @@ class ProfileController extends ActionController
 
     public function jsonAction()
     {
-        $feedposts = $this->feedRepository->findDataByUsername((string)$this->settings['username'], (int) $this->settings['limit']);
+        if (strpos($this->settings['usernames'], "\n") !== false)
+        {
+            $usernames = explode("\n", $this->settings['usernames']);
+            $feedposts = $this->feedRepository->findDataByMultipleUsernames($usernames);
+        }
+        else
+        {
+            $feedposts = $this->feedRepository->findDataByUsername((string)$this->settings['usernames'], (int) $this->settings['limit']);
+        }
         foreach ($feedposts as &$item) {
             $pathAndName = GeneralUtility::getFileAbsFileName($this->imageFolder) . $item['id'] . '.jpg';
             if (file_exists($pathAndName)) {

@@ -26,8 +26,18 @@ class GetFeedViewHelper extends AbstractViewHelper
      */
     public function render(): array
     {
+        $limit = (int)$this->arguments['flexForm']['settings']['limit'];
+        $usernames = (string)$this->arguments['flexForm']['settings']['usernames'];
         /** @var FeedRepository $instagramRepository */
-        $instagramRepository = GeneralUtility::makeInstance(FeedRepository::class);
-        return $instagramRepository->findDataByUsername((string)$this->arguments['flexForm']['settings']['username']);
+        $feedRepository = GeneralUtility::makeInstance(FeedRepository::class);
+        if (str_contains($usernames, "\n"))
+        {
+            $usernames = explode("\n", $usernames);
+            return $feedRepository->findDataByMultipleUsernames($usernames, $limit);
+        }
+        else
+        {
+            return $feedRepository->findDataByUsername($usernames, $limit);
+        }
     }
 }

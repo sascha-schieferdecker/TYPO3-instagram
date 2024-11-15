@@ -16,9 +16,47 @@ class FeedRepository
     const TABLE_FEEDS = 'tx_instagram_feed';
     const TABLE_POSTS = 'tx_instagram_post';
 
-    /**
-     * @return array
-     */
+    public function findDataByMultipleUsernames(array $usernames, $limit = 10): array
+    {
+        $queryBuilder = DatabaseUtility::getQueryBuilderForTable(self::TABLE_FEEDS);
+        $usernames = array_map(function ($username) use ($queryBuilder) {
+            return $queryBuilder->getConnection()->quote($username);
+        }, $usernames);
+        $feeduids = $queryBuilder
+            ->select('uid')
+            ->from(self::TABLE_FEEDS)
+            ->where(
+                $queryBuilder->expr()->in('username', $usernames)
+            )
+            ->orderBy('uid')
+            ->executeQuery()
+            ->fetchFirstColumn();
+
+        if (count($feeduids) > 0) {
+            $queryBuilder = DatabaseUtility::getQueryBuilderForTable(self::TABLE_POSTS);
+            $data = $queryBuilder
+                ->select('content')
+                ->from(self::TABLE_POSTS)
+                ->where(
+                    $queryBuilder->expr()->in('feed_uid', $feeduids)
+                )
+                ->orderBy('tstamp', 'desc')
+                ->setMaxResults($limit)
+                ->executeQuery()
+                ->fetchAllAssociative();
+            $result = [];
+            foreach ($data as $item) {
+                if (ArrayUtility::isJsonArray((string) $item['content'])) {
+                    $result[] = json_decode((string) $item['content'], true);
+                }
+            }
+            return $result;
+        }
+
+
+        return [];
+    }
+
     public function findDataByUsername(string $username, int $limit = 10): array
     {
         $queryBuilder = DatabaseUtility::getQueryBuilderForTable(self::TABLE_FEEDS);
@@ -53,8 +91,8 @@ class FeedRepository
             ->executeQuery()
             ->fetchAllAssociative();
         foreach ($data as $item) {
-            if (ArrayUtility::isJsonArray(base64_decode((string) $item['content']))) {
-                $result[] = json_decode((string) base64_decode($item['content']), true);
+            if (ArrayUtility::isJsonArray((string) $item['content'])) {
+                $result[] = json_decode((string) $item['content'], true);
             }
         }
         return $result;
@@ -137,7 +175,7 @@ class FeedRepository
                 ->values([
                     'feed_uid' => $feedUid,
                     'uid' => $post['id'],
-                    'content' => base64_encode(json_encode($post)),
+                    'content' => json_encode($post),
                     'tstamp' => strtotime($post['timestamp'])
                 ])
                 ->executeStatement();
@@ -156,7 +194,7 @@ class FeedRepository
                 $queryBuilder->expr()->eq('uid', $queryBuilder->createNamedParameter($post['id'])),
                 $queryBuilder->expr()->eq('feed_uid', $queryBuilder->createNamedParameter($feedUid))
             )
-            ->set('content', base64_encode(json_encode($post)))
+            ->set('content', json_encode($post))
             ->set('tstamp', strtotime($post['timestamp']))
             ->executeStatement();
     }

@@ -10,17 +10,17 @@
 				</TCEforms>
 				<type>array</type>
 				<el>
-					<settings.username>
+					<settings.usernames>
 						<TCEforms>
-							<exclude>1</exclude>
-							<label>username</label>
+							<label>Show posts from these Instagram accounts (one per line):</label>
 							<config>
-								<type>input</type>
-								<placeholder>username</placeholder>
+								<type>text</type>
+								<cols>30</cols>
+								<rows>5</rows>
 								<eval>trim,required</eval>
 							</config>
 						</TCEforms>
-					</settings.username>
+					</settings.usernames>
 					<settings.limit>
 						<TCEforms>
 							<exclude>1</exclude>
