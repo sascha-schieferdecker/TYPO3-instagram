@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+
 namespace SaschaSchieferdecker\Instagram\Domain\Repository;
 
 use Doctrine\DBAL\Exception as DBALException;
@@ -13,120 +14,126 @@ use SaschaSchieferdecker\Instagram\Utility\DatabaseUtility;
  */
 class FeedRepository
 {
-    const TABLE_FEEDS = 'tx_instagram_feed';
-    const TABLE_POSTS = 'tx_instagram_post';
+    private const TABLE_FEEDS = 'tx_instagram_feed';
+    private const TABLE_POSTS = 'tx_instagram_post';
+    private const DEFAULT_LIMIT = 10;
 
-    public function findDataByMultipleUsernames(array $usernames, $limit = 10): array
+    public function findDataByMultipleUsernames(array $usernames, int $limit = self::DEFAULT_LIMIT): array
+    {
+        $quotedUsernames = $this->quoteUsernames($usernames);
+
+        $feedUids = $this->getFeedUidsByUsernames($quotedUsernames);
+        if (empty($feedUids)) {
+            return [];
+        }
+
+        return $this->getPostsByFeedUids($feedUids, $limit);
+    }
+
+    private function quoteUsernames(array $usernames): array
     {
         $queryBuilder = DatabaseUtility::getQueryBuilderForTable(self::TABLE_FEEDS);
-        $usernames = array_map(function ($username) use ($queryBuilder) {
+        return array_map(static function ($username) use ($queryBuilder) {
             return $queryBuilder->getConnection()->quote($username);
         }, $usernames);
-        $feeduids = $queryBuilder
+    }
+
+    private function getFeedUidsByUsernames(array $quotedUsernames): array
+    {
+        $queryBuilder = DatabaseUtility::getQueryBuilderForTable(self::TABLE_FEEDS);
+        return $queryBuilder
             ->select('uid')
             ->from(self::TABLE_FEEDS)
-            ->where(
-                $queryBuilder->expr()->in('username', $usernames)
-            )
+            ->where($queryBuilder->expr()->in('username', $quotedUsernames))
             ->orderBy('uid')
             ->executeQuery()
             ->fetchFirstColumn();
-
-        if (count($feeduids) > 0) {
-            $queryBuilder = DatabaseUtility::getQueryBuilderForTable(self::TABLE_POSTS);
-            $data = $queryBuilder
-                ->select('content')
-                ->from(self::TABLE_POSTS)
-                ->where(
-                    $queryBuilder->expr()->in('feed_uid', $feeduids)
-                )
-                ->orderBy('tstamp', 'desc')
-                ->setMaxResults($limit)
-                ->executeQuery()
-                ->fetchAllAssociative();
-            $result = [];
-            foreach ($data as $item) {
-                if (ArrayUtility::isJsonArray((string) $item['content'])) {
-                    $result[] = json_decode((string) $item['content'], true);
-                }
-            }
-            return $result;
-        }
-
-
-        return [];
     }
 
-    public function findDataByUsername(string $username, int $limit = 10): array
+    private function getPostsByFeedUids(array $feedUids, int $limit): array
     {
-        $queryBuilder = DatabaseUtility::getQueryBuilderForTable(self::TABLE_FEEDS);
-        $data = (string)$queryBuilder
-            ->select('uid')
-            ->from(self::TABLE_FEEDS)
-            ->where(
-                $queryBuilder->expr()->eq('username', $queryBuilder->createNamedParameter($username))
-            )
-            ->setMaxResults(1)
-            ->orderBy('uid', 'desc')
-            ->executeQuery()
-            ->fetchOne();
-        if ($data !== '') {
-            return $this->findDataByFeedUid((int)$data, $limit);
-        }
-        return [];
-    }
-
-    public function findDataByFeedUid(int $feedUid, int $limit = 10): array
-    {
-        $result = [];
         $queryBuilder = DatabaseUtility::getQueryBuilderForTable(self::TABLE_POSTS);
         $data = $queryBuilder
             ->select('content')
             ->from(self::TABLE_POSTS)
-            ->where(
-                $queryBuilder->expr()->eq('feed_uid', $queryBuilder->createNamedParameter($feedUid))
-            )
+            ->where($queryBuilder->expr()->in('feed_uid', $feedUids))
             ->orderBy('tstamp', 'desc')
             ->setMaxResults($limit)
             ->executeQuery()
             ->fetchAllAssociative();
-        foreach ($data as $item) {
-            if (ArrayUtility::isJsonArray((string) $item['content'])) {
-                $result[] = json_decode((string) $item['content'], true);
-            }
-        }
-        return $result;
+
+        return array_filter(array_map([$this, 'decodeJsonContent'], $data));
     }
 
-    public function cleanupFeeds(int $limit)
+    private function decodeJsonContent(array $item): ?array
     {
-        // Get all feeds
+        if (ArrayUtility::isJsonArray($item['content'])) {
+            return json_decode($item['content'], true);
+        }
+
+        return null;
+    }
+
+    public function findDataByUsername(string $username, int $limit = self::DEFAULT_LIMIT): array
+    {
         $queryBuilder = DatabaseUtility::getQueryBuilderForTable(self::TABLE_FEEDS);
-        $feeds = $queryBuilder
+        $feedUid = $queryBuilder
+            ->select('uid')
+            ->from(self::TABLE_FEEDS)
+            ->where($queryBuilder->expr()->eq('username', $queryBuilder->createNamedParameter($username)))
+            ->setMaxResults(1)
+            ->orderBy('uid', 'desc')
+            ->executeQuery()
+            ->fetchOne();
+
+        return $feedUid ? $this->findDataByFeedUid((int)$feedUid, $limit) : [];
+    }
+
+    public function findDataByFeedUid(int $feedUid, int $limit = self::DEFAULT_LIMIT): array
+    {
+        return $this->getPostsByFeedUids([$feedUid], $limit);
+    }
+
+    public function cleanupFeeds(int $limit): array
+    {
+        $feeds = $this->getAllFeedsOrderedByImportDate();
+        $uidsToKeep = $this->getUidsToKeepFromFeeds($feeds, $limit);
+
+        $this->deletePostsNotInUids($uidsToKeep);
+        return $uidsToKeep;
+    }
+
+    private function getAllFeedsOrderedByImportDate(): array
+    {
+        $queryBuilder = DatabaseUtility::getQueryBuilderForTable(self::TABLE_FEEDS);
+        return $queryBuilder
             ->select('uid')
             ->from(self::TABLE_FEEDS)
             ->orderBy('import_date', 'asc')
             ->executeQuery()
             ->fetchAllAssociative();
+    }
 
+    private function getUidsToKeepFromFeeds(array $feeds, int $limit): array
+    {
         $uidsToKeep = [];
         foreach ($feeds as $feed) {
-            $feedUid = (int) $feed['uid'];
+            $feedUid = (int)$feed['uid'];
             $posts = $this->findDataByFeedUid($feedUid, $limit);
             foreach ($posts as $post) {
-                $uidsToKeep[] = (int) $post['id'];
+                $uidsToKeep[] = (int)$post['id'];
             }
         }
-        // Now delete all posts that are not in $uidsToKeep
+        return $uidsToKeep;
+    }
+
+    private function deletePostsNotInUids(array $uidsToKeep): void
+    {
         $queryBuilder = DatabaseUtility::getQueryBuilderForTable(self::TABLE_POSTS);
         $queryBuilder
             ->delete(self::TABLE_POSTS)
-            ->where(
-                $queryBuilder->expr()->notIn('uid', $uidsToKeep),
-            )
+            ->where($queryBuilder->expr()->notIn('uid', $uidsToKeep))
             ->executeStatement();
-
-        return $uidsToKeep;
     }
 
     /**
@@ -138,51 +145,47 @@ class FeedRepository
     public function insertFeed(string $username): int
     {
         $queryBuilder = DatabaseUtility::getQueryBuilderForTable(self::TABLE_FEEDS);
-        $data = $queryBuilder
+        $existingFeedUid = $queryBuilder
             ->select('uid')
             ->from(self::TABLE_FEEDS)
-            ->where(
-                $queryBuilder->expr()->eq('username', $queryBuilder->createNamedParameter($username))
-            )
+            ->where($queryBuilder->expr()->eq('username', $queryBuilder->createNamedParameter($username)))
             ->setMaxResults(1)
             ->orderBy('uid', 'desc')
             ->executeQuery()
             ->fetchOne();
-        if ($data === false) {
+
+        if ($existingFeedUid === false) {
             $queryBuilder
                 ->insert(self::TABLE_FEEDS)
-                ->values([
-                    'username' => $username,
-                    'import_date' => time()
-                ])
+                ->values(['username' => $username, 'import_date' => time()])
                 ->executeStatement();
-            $feedUid = (int) $queryBuilder->getConnection()->lastInsertId();
+            return (int)$queryBuilder->getConnection()->lastInsertId();
         }
-        else {
-            $feedUid = (int) $data;
-        }
-        return $feedUid;
+
+        return (int)$existingFeedUid;
     }
 
     public function insertPost(int $feedUid, array $post): void
     {
-        $postExists = $this->postExists($feedUid, $post['id']);
-
-        if ($postExists === false) {
-            $queryBuilder = DatabaseUtility::getQueryBuilderForTable(self::TABLE_POSTS);
-            $queryBuilder
-                ->insert(self::TABLE_POSTS)
-                ->values([
-                    'feed_uid' => $feedUid,
-                    'uid' => $post['id'],
-                    'content' => json_encode($post),
-                    'tstamp' => strtotime($post['timestamp'])
-                ])
-                ->executeStatement();
-        }
-        else {
+        if ($this->postExists($feedUid, (int) $post['id']) === false) {
+            $this->performPostInsert($feedUid, $post);
+        } else {
             $this->updatePost($feedUid, $post);
         }
+    }
+
+    private function performPostInsert(int $feedUid, array $post): void
+    {
+        $queryBuilder = DatabaseUtility::getQueryBuilderForTable(self::TABLE_POSTS);
+        $queryBuilder
+            ->insert(self::TABLE_POSTS)
+            ->values([
+                'feed_uid' => $feedUid,
+                'uid' => $post['id'],
+                'content' => json_encode($post),
+                'tstamp' => strtotime($post['timestamp'])
+            ])
+            ->executeStatement();
     }
 
     public function updatePost(int $feedUid, array $post): void
@@ -190,19 +193,19 @@ class FeedRepository
         $queryBuilder = DatabaseUtility::getQueryBuilderForTable(self::TABLE_POSTS);
         $queryBuilder
             ->update(self::TABLE_POSTS)
+            ->set('content', json_encode($post))
+            ->set('tstamp', strtotime($post['timestamp']))
             ->where(
                 $queryBuilder->expr()->eq('uid', $queryBuilder->createNamedParameter($post['id'])),
                 $queryBuilder->expr()->eq('feed_uid', $queryBuilder->createNamedParameter($feedUid))
             )
-            ->set('content', json_encode($post))
-            ->set('tstamp', strtotime($post['timestamp']))
             ->executeStatement();
     }
 
-    public function postExists($feedUid, $postUid)
+    public function postExists(int $feedUid, int $postUid)
     {
         $queryBuilder = DatabaseUtility::getQueryBuilderForTable(self::TABLE_POSTS);
-        $data = $queryBuilder
+        return $queryBuilder
             ->select('uid')
             ->from(self::TABLE_POSTS)
             ->where(
@@ -212,6 +215,5 @@ class FeedRepository
             ->setMaxResults(1)
             ->executeQuery()
             ->fetchOne();
-        return $data;
     }
 }
