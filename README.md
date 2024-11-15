@@ -16,7 +16,6 @@ as an API provider.
 Clone the repo into your local packages directory in a folder named "instagram" and set up your root composer.json as follows:
 
 ```json
-...
   "repositories": [
     {
       "type": "path",
@@ -24,12 +23,11 @@ Clone the repo into your local packages directory in a folder named "instagram" 
       "options": {
         "symlink": true
       }
-    },
-...
+    }
 ```
-Now you are able to install the extension from your local directory by using the "@dev" pattern:
+Now you should be able to install the extension from your local directory by using the "@dev" pattern:
 
-`composer require saschaschieferdecker/instagram:@dev
+`composer require saschaschieferdecker/instagram:@dev`
 
 
 ## Configuration
@@ -38,9 +36,11 @@ Now you are able to install the extension from your local directory by using the
 
 Sign up to apify.com and create a scrapers and set it up for the profiles to scrape:
 
-apify/instagram-scraper
+`apify/instagram-scraper`
 
 Make sure you don't select any filter (posts/reels) while setting up the scraper. Schedule the scraper to run as often as you like.
+
+![scraper.png](Documentation%2FImages%2Fscraper.png)
 
 ### The TYPO3 part
 
