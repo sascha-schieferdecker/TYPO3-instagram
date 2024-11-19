@@ -38,9 +38,13 @@ Sign up to apify.com and create a scrapers and set it up for the profiles to scr
 
 `apify/instagram-scraper`
 
-Make sure you don't select any filter (posts/reels) while setting up the scraper. Schedule the scraper to run as often as you like.
+Ensure no filter (posts/reels) is selected when setting up the scraper. You can schedule the scraper to run as frequently as you prefer.
 
-It is important that you run the scraper multiple times a day, the host names for the instagram asset URLs seem rather transient.
+It is crucial to run the scraper multiple times a day, as the host names for Instagram asset URLs appear to change frequently.
+
+The extension saves posts as individual database entries. This allows you to set a low number of posts to scrape, based on 
+how frequently new content is posted. Ensure both the Apify and TYPO3 schedulers are set to a short enough interval to avoid 
+missing any posts.
 
 ![scraper.png](Documentation%2FImages%2Fscraper.png)
 
@@ -74,7 +78,7 @@ Delete all posts and media except the last 10 per feed:
 #### Import Feed
 
 Add a new scheduler task of type `Execute console commands (scheduler)` and select `instagram:importfeed`. Now you can
-add a frequency (e.g. `*/30 * * * *` for every 30 minutes), a instagram username and one (or more) email address if
+add a frequency (e.g. `*/30 * * * *` for every 30 minutes), an instagram username and one (or more) email address if
 error happens (and you want get notified).
 
 | Field    | Description                                                                                                                             |
@@ -84,7 +88,8 @@ error happens (and you want get notified).
 
 ### Cleanup Feeds
 
-Add a new scheduler task of type `Execute console commands (scheduler)` and select `instagram:cleanupfeed`. Now you can add a frequency (e.g. `*/30 * * * *` for every 30 minutes).
+Add a new scheduler task of type `Execute console commands (scheduler)` and select `instagram:cleanupfeed`. Now you can 
+add a frequency (e.g. `*/30 * * * *` for every 30 minutes).
 
 | Field | Description                                                         |
 |-------|---------------------------------------------------------------------|
@@ -92,9 +97,11 @@ Add a new scheduler task of type `Execute console commands (scheduler)` and sele
 
 ### Output
 
-You can use the `tx_instagram_pi1` plugin to render the output of the extension in a page. There also is a plugin `tx_instagram_json` for JSON output, rather hacky, but working.
+You can use the `tx_instagram_pi1` plugin to render the output of the extension in a page. There also is a plugin 
+`tx_instagram_json` for JSON output, rather hacky, but working.
 
-The difference in the JSON output vs. calling apify directly is that the plugin uses the locally stored displayUrl and videoUrl if possible.
+The difference in the JSON output vs. calling apify directly is that the plugin uses the locally stored displayUrl 
+and videoUrl if possible.
 
 ### HTML output modification
 
