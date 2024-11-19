@@ -40,6 +40,8 @@ Sign up to apify.com and create a scrapers and set it up for the profiles to scr
 
 Make sure you don't select any filter (posts/reels) while setting up the scraper. Schedule the scraper to run as often as you like.
 
+It is important that you run the scraper multiple times a day, the host names for the instagram asset URLs seem rather transient.
+
 ![scraper.png](Documentation%2FImages%2Fscraper.png)
 
 ### The TYPO3 part
