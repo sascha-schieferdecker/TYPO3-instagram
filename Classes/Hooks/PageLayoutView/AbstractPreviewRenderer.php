@@ -69,7 +69,7 @@ abstract class AbstractPreviewRenderer implements PageLayoutViewDrawItemHookInte
         &$headerContent,
         &$itemContent,
         array &$row
-    ) {
+    ): void {
         $this->data = &$row;
         if ($this->isMatching() && $this->checkTemplateFile()) {
             $drawItem = false;

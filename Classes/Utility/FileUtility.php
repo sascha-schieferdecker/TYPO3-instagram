@@ -13,7 +13,7 @@ class FileUtility
      * @param string $path absolute path
      * @return void
      */
-    public static function createFolderIfNotExists(string $path)
+    public static function createFolderIfNotExists(string $path): void
     {
         if (!is_dir($path)) {
             try {

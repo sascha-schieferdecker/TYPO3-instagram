@@ -19,7 +19,7 @@ class IsLocalImageExistingViewHelper extends AbstractConditionViewHelper
     /**
      * Initializes the arguments
      */
-    public function initializeArguments()
+    public function initializeArguments(): void
     {
         parent::initializeArguments();
         $this->registerArgument('id', 'int', 'post identifier', true);

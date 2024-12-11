@@ -20,7 +20,7 @@ class EditLinkViewHelper extends AbstractViewHelper
     /**
      * @return void
      */
-    public function initializeArguments()
+    public function initializeArguments(): void
     {
         parent::initializeArguments();
         $this->registerArgument('identifier', 'int', 'Identifier', true);

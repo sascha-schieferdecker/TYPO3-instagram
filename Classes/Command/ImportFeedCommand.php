@@ -46,7 +46,7 @@ class ImportFeedCommand extends Command
     /**
      * @return void
      */
-    public function configure()
+    public function configure(): void
     {
         $this->setDescription('Import instagram feed');
         $this->addArgument('posts-url', InputArgument::REQUIRED, 'API URL for posts');

@@ -62,8 +62,8 @@ class BackendUtility
     protected static function getModuleName(): string
     {
         $moduleName = 'record_edit';
-        if (GeneralUtility::_GET('route') !== null) {
-            $routePath = (string)GeneralUtility::_GET('route');
+        if (($GLOBALS['TYPO3_REQUEST']->getQueryParams()['route'] ?? null) !== null) {
+            $routePath = (string)($GLOBALS['TYPO3_REQUEST']->getQueryParams()['route'] ?? null);
             $router = GeneralUtility::makeInstance(Router::class);
             try {
                 $route = $router->match($routePath);
@@ -84,7 +84,7 @@ class BackendUtility
     public static function getCurrentParameters(array $getParameters = []): array
     {
         if (empty($getParameters)) {
-            $getParameters = GeneralUtility::_GET();
+            $getParameters = $GLOBALS['TYPO3_REQUEST']->getQueryParams();
         }
         $parameters = [];
         $ignoreKeys = [
