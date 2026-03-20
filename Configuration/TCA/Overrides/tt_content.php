@@ -22,3 +22,11 @@ defined('TYPO3') || die();
     'FILE:EXT:instagram/Configuration/FlexForms/FlexFormJson.xml',
     'instagram_json'
 );
+
+/**
+ * Register preview renderers
+ */
+$GLOBALS['TCA']['tt_content']['types']['instagram_pi1']['previewRenderer'] =
+    \SaschaSchieferdecker\Instagram\Hooks\PageLayoutView\Pi1PreviewRenderer::class;
+$GLOBALS['TCA']['tt_content']['types']['instagram_json']['previewRenderer'] =
+    \SaschaSchieferdecker\Instagram\Hooks\PageLayoutView\JsonPreviewRenderer::class;

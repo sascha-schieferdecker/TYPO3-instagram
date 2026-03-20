@@ -14,14 +14,5 @@ call_user_func(
             \TYPO3\CMS\Core\Imaging\IconProvider\SvgIconProvider::class,
             ['source' => 'EXT:instagram/Resources/Public/Icons/Extension.svg']
         );
-
-        /**
-         * Register own preview renderer for plugins
-         */
-        $layout = 'cms/layout/class.tx_cms_layout.php';
-        $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][$layout]['tt_content_drawItem']['instagram_pi1'] =
-        \SaschaSchieferdecker\Instagram\Hooks\PageLayoutView\Pi1PreviewRenderer::class;
-        $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][$layout]['tt_content_drawItem']['instagram_json'] =
-        \SaschaSchieferdecker\Instagram\Hooks\PageLayoutView\JsonPreviewRenderer::class;
     }
 );
