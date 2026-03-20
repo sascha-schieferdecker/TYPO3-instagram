@@ -18,7 +18,7 @@ class FileUtility
         if (!is_dir($path)) {
             try {
                 GeneralUtility::mkdir_deep($path);
-            } catch (\Exception $exception) {
+            } catch (\Exception) {
                 throw new \UnexpectedValueException('Folder ' . $path . ' could not be created', 1549533300);
             }
         }

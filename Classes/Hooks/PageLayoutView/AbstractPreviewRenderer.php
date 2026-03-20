@@ -94,7 +94,7 @@ abstract class AbstractPreviewRenderer implements PageLayoutViewDrawItemHookInte
     protected function getBodytext(): string
     {
         $standaloneView = GeneralUtility::makeInstance(StandaloneView::class);
-        $standaloneView->setTemplatePathAndFilename($this->getTemplateFile());
+        $standaloneView->getRenderingContext()->getTemplatePaths()->setTemplatePathAndFilename($this->getTemplateFile());
         $standaloneView->assignMultiple($this->getAssignmentsForTemplate() + [
             'data' => $this->data,
             'flexForm' => $this->getFlexForm()

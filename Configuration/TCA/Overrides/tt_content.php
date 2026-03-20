@@ -8,21 +8,17 @@ defined('TYPO3') || die();
 \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerPlugin('instagram', 'Json', 'Instagram JSON');
 
 /**
- * Disable not needed fields in tt_content
- */
-$GLOBALS['TCA']['tt_content']['types']['list']['subtypes_excludelist']['instagram_pi1'] = 'select_key,pages,recursive';
-$GLOBALS['TCA']['tt_content']['types']['list']['subtypes_excludelist']['instagram_json'] = 'select_key,pages,recursive';
-
-/**
  * Include Flexform
  */
-$GLOBALS['TCA']['tt_content']['types']['list']['subtypes_addlist']['instagram_pi1'] = 'pi_flexform';
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes('tt_content', '--div--;Configuration,pi_flexform,', 'instagram_pi1', 'after:subheader');
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addPiFlexFormValue(
-    'instagram_pi1',
-    'FILE:EXT:instagram/Configuration/FlexForms/FlexFormPi1.xml'
+    '*',
+    'FILE:EXT:instagram/Configuration/FlexForms/FlexFormPi1.xml',
+    'instagram_pi1'
 );
-$GLOBALS['TCA']['tt_content']['types']['list']['subtypes_addlist']['instagram_json'] = 'pi_flexform';
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes('tt_content', '--div--;Configuration,pi_flexform,', 'instagram_json', 'after:subheader');
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addPiFlexFormValue(
-    'instagram_json',
-    'FILE:EXT:instagram/Configuration/FlexForms/FlexFormJson.xml'
+    '*',
+    'FILE:EXT:instagram/Configuration/FlexForms/FlexFormJson.xml',
+    'instagram_json'
 );

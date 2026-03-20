@@ -30,7 +30,7 @@ class IsLocalVideoExistingViewHelper extends AbstractConditionViewHelper
      * @return bool
      * @throws \Exception
      */
-    protected static function evaluateCondition($arguments = null): bool
+    public static function verdict(array $arguments, \TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface $renderingContext): bool
     {
         $file = GeneralUtility::getFileAbsFileName(self::$imageFolder) . $arguments['id'] . '.mp4';
         return is_file($file);

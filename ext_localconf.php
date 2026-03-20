@@ -15,6 +15,8 @@ call_user_func(
             [
                 \SaschaSchieferdecker\Instagram\Controller\ProfileController::class => 'show'
             ],
+            [],
+            \TYPO3\CMS\Extbase\Utility\ExtensionUtility::PLUGIN_TYPE_CONTENT_ELEMENT,
         );
         \TYPO3\CMS\Extbase\Utility\ExtensionUtility::configurePlugin(
             'Instagram',
@@ -22,6 +24,8 @@ call_user_func(
             [
                 \SaschaSchieferdecker\Instagram\Controller\ProfileController::class => 'json'
             ],
+            [],
+            \TYPO3\CMS\Extbase\Utility\ExtensionUtility::PLUGIN_TYPE_CONTENT_ELEMENT,
         );
 
         /**
@@ -30,12 +34,5 @@ call_user_func(
         if (is_array($GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['instagram'] ?? '') === false) {
             $GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['instagram'] = [];
         }
-
-        /**
-         * ContentElementWizard
-         */
-        \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addPageTSConfig(
-            '@import "EXT:instagram/Configuration/TSConfig/ContentElementWizard.typoscript"'
-        );
     }
 );

@@ -33,9 +33,7 @@ class FeedRepository
     private function quoteUsernames(array $usernames): array
     {
         $queryBuilder = DatabaseUtility::getQueryBuilderForTable(self::TABLE_FEEDS);
-        return array_map(static function ($username) use ($queryBuilder) {
-            return $queryBuilder->getConnection()->quote($username);
-        }, $usernames);
+        return array_map(static fn($username) => $queryBuilder->getConnection()->quote($username), $usernames);
     }
 
     private function getFeedUidsByUsernames(array $quotedUsernames): array
@@ -62,13 +60,13 @@ class FeedRepository
             ->executeQuery()
             ->fetchAllAssociative();
 
-        return array_filter(array_map([$this, 'decodeJsonContent'], $data));
+        return array_filter(array_map($this->decodeJsonContent(...), $data));
     }
 
     private function decodeJsonContent(array $item): ?array
     {
         if (ArrayUtility::isJsonArray($item['content'])) {
-            return json_decode($item['content'], true);
+            return json_decode((string) $item['content'], true);
         }
 
         return null;
@@ -183,7 +181,7 @@ class FeedRepository
                 'feed_uid' => $feedUid,
                 'uid' => $post['id'],
                 'content' => json_encode($post),
-                'tstamp' => strtotime($post['timestamp'])
+                'tstamp' => strtotime((string) $post['timestamp'])
             ])
             ->executeStatement();
     }
@@ -194,7 +192,7 @@ class FeedRepository
         $queryBuilder
             ->update(self::TABLE_POSTS)
             ->set('content', json_encode($post))
-            ->set('tstamp', strtotime($post['timestamp']))
+            ->set('tstamp', strtotime((string) $post['timestamp']))
             ->where(
                 $queryBuilder->expr()->eq('uid', $queryBuilder->createNamedParameter($post['id'])),
                 $queryBuilder->expr()->eq('feed_uid', $queryBuilder->createNamedParameter($feedUid))
