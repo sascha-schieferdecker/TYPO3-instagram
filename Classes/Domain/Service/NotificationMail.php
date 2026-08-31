@@ -28,14 +28,14 @@ class NotificationMail
 
     /**
      * @param string $email
-     * @param array $arguments
+     * @param array $arguments Deliberately not rendered into the mail: the posts-url
+     *                         argument carries the Apify API token in clear text.
      * @param \Exception $exception
      * @return void
      */
     protected function sendEmail(string $email, array $arguments, \Exception $exception): void
     {
-        $message = 'Message: ' . $exception->getMessage() . ' (' . $exception->getCode() . ') / ';
-        $message .= 'Arguments: ' . print_r($arguments, true);
+        $message = 'Message: ' . $exception->getMessage() . ' (' . $exception->getCode() . ')';
         /** @var FluidEmail $email */
         $email = GeneralUtility::makeInstance(FluidEmail::class)
             ->to($email)
