@@ -5,8 +5,7 @@ mod.wizards.newContentElement.wizardItems.plugins {
 			title = Instagram Plugin
 			description = Show an instagram feed
 			tt_content_defValues {
-				CType = list
-				list_type = instagram_pi1
+				CType = instagram_pi1
 			}
 		}
 		instagramjson {
@@ -14,8 +13,7 @@ mod.wizards.newContentElement.wizardItems.plugins {
 			title = Instagram Plugin JSON
 			description = JSON Output of feed
 			tt_content_defValues {
-				CType = list
-				list_type = instagram_json
+				CType = instagram_json
 			}
 		}
 	}

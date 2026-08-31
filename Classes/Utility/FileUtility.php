@@ -13,12 +13,12 @@ class FileUtility
      * @param string $path absolute path
      * @return void
      */
-    public static function createFolderIfNotExists(string $path)
+    public static function createFolderIfNotExists(string $path): void
     {
         if (!is_dir($path)) {
             try {
                 GeneralUtility::mkdir_deep($path);
-            } catch (\Exception $exception) {
+            } catch (\Exception) {
                 throw new \UnexpectedValueException('Folder ' . $path . ' could not be created', 1549533300);
             }
         }

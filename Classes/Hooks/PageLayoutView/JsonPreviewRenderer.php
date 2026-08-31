@@ -3,17 +3,12 @@ declare(strict_types=1);
 namespace SaschaSchieferdecker\Instagram\Hooks\PageLayoutView;
 
 /**
- * Class Pi1PreviewRenderer
+ * Class JsonPreviewRenderer
  */
 class JsonPreviewRenderer extends AbstractPreviewRenderer
 {
-    /**
-     * @var string
-     */
-    protected $cType = 'list';
-
-    /**
-     * @var string
-     */
-    protected $listType = 'instagram_json';
+    protected function getTemplateName(): string
+    {
+        return 'InstagramJson';
+    }
 }

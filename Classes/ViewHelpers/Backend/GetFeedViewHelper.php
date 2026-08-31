@@ -15,7 +15,7 @@ class GetFeedViewHelper extends AbstractViewHelper
     /**
      * @return void
      */
-    public function initializeArguments()
+    public function initializeArguments(): void
     {
         parent::initializeArguments();
         $this->registerArgument('flexForm', 'array', 'tt_content.pi_flexform as array', true);

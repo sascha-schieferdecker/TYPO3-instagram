@@ -42,7 +42,7 @@ class CleanupFeedCommand extends Command
     /**
      * @return void
      */
-    public function configure()
+    public function configure(): void
     {
         $this->setDescription('Cleanup instagram feed');
         $this->addArgument('keep', InputArgument::REQUIRED, 'Number of entries to keep for each feed');

@@ -3,6 +3,7 @@ declare(strict_types=1);
 namespace SaschaSchieferdecker\Instagram\Command;
 
 use SaschaSchieferdecker\Instagram\Domain\Repository\FeedRepository;
+use SaschaSchieferdecker\Instagram\Exception\ApiConnectionException;
 use SaschaSchieferdecker\Instagram\Domain\Service\PrepareFeed;
 use SaschaSchieferdecker\Instagram\Domain\Service\NotificationMail;
 use Symfony\Component\Console\Command\Command;
@@ -46,7 +47,7 @@ class ImportFeedCommand extends Command
     /**
      * @return void
      */
-    public function configure()
+    public function configure(): void
     {
         $this->setDescription('Import instagram feed');
         $this->addArgument('posts-url', InputArgument::REQUIRED, 'API URL for posts');
@@ -80,6 +81,7 @@ class ImportFeedCommand extends Command
                     );
                 }
             }
+            $this->reportAssetErrors($input, $output);
             return 0;
         } catch (\Exception $exception) {
             $output->writeln('Feed could not be fetched from Instagram');
@@ -88,6 +90,39 @@ class ImportFeedCommand extends Command
                 $this->notificationMail->send($input->getArgument('notify'), $input->getArguments(), $exception);
             }
             return 1605297993;
+        }
+    }
+
+    /**
+     * Failed asset downloads are not fatal - the posts themselves are already stored.
+     * Report every failure of the current run in one notification instead of
+     * aborting the import on the first unreachable image or video.
+     *
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return void
+     */
+    protected function reportAssetErrors(InputInterface $input, OutputInterface $output): void
+    {
+        $assetErrors = $this->prepareFeed->getAssetErrors();
+        if ($assetErrors === []) {
+            return;
+        }
+
+        $output->writeln(count($assetErrors) . ' asset(s) could not be fetched from Instagram:');
+        foreach ($assetErrors as $assetError) {
+            $output->writeln('- ' . $assetError);
+        }
+
+        if ($input->getArgument('notify') !== '') {
+            $this->notificationMail->send(
+                $input->getArgument('notify'),
+                $input->getArguments(),
+                new ApiConnectionException(
+                    count($assetErrors) . ' asset(s) could not be fetched: ' . implode(' | ', $assetErrors),
+                    1615759354
+                )
+            );
         }
     }
 }

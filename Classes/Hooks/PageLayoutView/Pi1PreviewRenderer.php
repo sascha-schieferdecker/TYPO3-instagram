@@ -7,13 +7,8 @@ namespace SaschaSchieferdecker\Instagram\Hooks\PageLayoutView;
  */
 class Pi1PreviewRenderer extends AbstractPreviewRenderer
 {
-    /**
-     * @var string
-     */
-    protected $cType = 'list';
-
-    /**
-     * @var string
-     */
-    protected $listType = 'instagram_pi1';
+    protected function getTemplateName(): string
+    {
+        return 'InstagramPi1';
+    }
 }

@@ -13,25 +13,17 @@ use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
  */
 class ProfileController extends ActionController
 {
-    private const CONTENT_TYPE_JSON = 'Content-Type: application/json';
-
     /**
      * @var string
      */
     private $imageFolder = 'typo3temp/assets/tx_instagram/';
 
     /**
-     * @var FeedRepository
-     */
-    private $feedRepository;
-
-    /**
      * ProfileController constructor.
      * @param FeedRepository $feedRepository
      */
-    public function __construct(FeedRepository $feedRepository)
+    public function __construct(private readonly FeedRepository $feedRepository)
     {
-        $this->feedRepository = $feedRepository;
     }
 
     public function showAction(): ResponseInterface
@@ -43,21 +35,20 @@ class ProfileController extends ActionController
         return $this->htmlResponse();
     }
 
-    public function jsonAction(): void
+    public function jsonAction(): ResponseInterface
     {
         $feedPosts = $this->getFeedPosts();
         foreach ($feedPosts as &$item) {
             $this->updateMediaUrls($item);
         }
-        header(self::CONTENT_TYPE_JSON);
-        echo json_encode($feedPosts);
-        die();
+        $response = $this->jsonResponse(json_encode($feedPosts));
+        throw new \TYPO3\CMS\Core\Http\PropagateResponseException($response, 1604505304);
     }
 
     private function getFeedPosts(): array
     {
-        if (strpos($this->settings['usernames'], "\n") !== false) {
-            $usernames = explode("\n", $this->settings['usernames']);
+        if (str_contains((string) $this->settings['usernames'], "\n")) {
+            $usernames = explode("\n", (string) $this->settings['usernames']);
             return $this->feedRepository->findDataByMultipleUsernames($usernames);
         }
         return $this->feedRepository->findDataByUsername((string)$this->settings['usernames'], (int)$this->settings['limit']);
@@ -66,7 +57,7 @@ class ProfileController extends ActionController
     private function updateMediaUrls(array &$item): void
     {
         $absPath = GeneralUtility::getFileAbsFileName($this->imageFolder);
-        $domainPrefix = rtrim($this->settings['domainprefix'], '/');
+        $domainPrefix = rtrim((string) $this->settings['domainprefix'], '/');
 
         $imagePath = $absPath . $item['id'] . '.jpg';
         if (file_exists($imagePath)) {

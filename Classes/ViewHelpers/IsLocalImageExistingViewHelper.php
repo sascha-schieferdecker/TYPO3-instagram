@@ -19,7 +19,7 @@ class IsLocalImageExistingViewHelper extends AbstractConditionViewHelper
     /**
      * Initializes the arguments
      */
-    public function initializeArguments()
+    public function initializeArguments(): void
     {
         parent::initializeArguments();
         $this->registerArgument('id', 'int', 'post identifier', true);
@@ -30,7 +30,7 @@ class IsLocalImageExistingViewHelper extends AbstractConditionViewHelper
      * @return bool
      * @throws \Exception
      */
-    protected static function evaluateCondition($arguments = null): bool
+    public static function verdict(array $arguments, \TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface $renderingContext): bool
     {
         $file = GeneralUtility::getFileAbsFileName(self::$imageFolder) . $arguments['id'] . '.jpg';
         return is_file($file);

@@ -39,7 +39,7 @@ class ArrayUtility
     {
         $result = [];
         foreach ($flexForm as $key => $value) {
-            preg_match('/settings.(.*)/', $key, $keyResult);
+            preg_match('/settings.(.*)/', (string) $key, $keyResult);
             if (!empty($keyResult[1]) && array_key_exists('vDEF', $value)) {
                 $result[$keyResult[1]] = $value['vDEF'];
             }
