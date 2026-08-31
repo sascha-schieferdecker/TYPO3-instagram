@@ -18,6 +18,14 @@ class PrepareFeed
 
     protected RequestFactory $requestFactory;
 
+    /**
+     * Asset download failures collected during the last joinAndSort() call.
+     * A single unreachable asset must not discard an otherwise successful import.
+     *
+     * @var string[]
+     */
+    protected array $assetErrors = [];
+
     public function __construct()
     {
         $this->requestFactory = GeneralUtility::makeInstance(RequestFactory::class);
@@ -25,6 +33,7 @@ class PrepareFeed
 
     public function joinAndSort(string $postsUrl): array
     {
+        $this->assetErrors = [];
         $posts = $this->fetchPosts($postsUrl);
         $sortedPosts = $this->sortPostsByOwnerAndTimestamp($posts);
 
@@ -33,6 +42,14 @@ class PrepareFeed
         }
 
         return $sortedPosts;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getAssetErrors(): array
+    {
+        return $this->assetErrors;
     }
 
     protected function fetchPosts(string $url): array
@@ -85,9 +102,18 @@ class PrepareFeed
 
             foreach ($feed as $group) {
                 foreach ($group as $item) {
-                    $this->storeImage($path, $item);
-                    if ($item['type'] === 'Video') {
-                        $this->storeVideo($path, $item);
+                    try {
+                        $this->storeImage($path, $item);
+                        if ($item['type'] === 'Video') {
+                            $this->storeVideo($path, $item);
+                        }
+                    } catch (\Exception $exception) {
+                        $this->assetErrors[] = sprintf(
+                            'Post %s (%s): %s',
+                            (string)($item['id'] ?? 'unknown'),
+                            (string)($item['type'] ?? 'unknown'),
+                            $exception->getMessage()
+                        );
                     }
                 }
             }
@@ -107,10 +133,12 @@ class PrepareFeed
 
     protected function storeVideo(string $path, array $item): void
     {
-        $imageContent = $this->fetchContent($item['videoUrl']);
         $pathAndName = $path . (int)$item['id'] . '.mp4';
-        if ($imageContent !== '') {
-            GeneralUtility::writeFile($pathAndName, $imageContent, true);
+        if (!file_exists($pathAndName)) {
+            $videoContent = $this->fetchContent($item['videoUrl']);
+            if ($videoContent !== '') {
+                GeneralUtility::writeFile($pathAndName, $videoContent, true);
+            }
         }
     }
 
